@@ -1,6 +1,8 @@
 // @flow
 
-import { appNavigate } from '../app';
+import type { Dispatch } from 'redux';
+
+import { appNavigate } from '../app/actions';
 import { checkIfCanJoin, conferenceLeft } from '../base/conference';
 import { connectionFailed } from '../base/connection';
 import { openDialog } from '../base/dialog';
@@ -14,8 +16,7 @@ import {
     WAIT_FOR_OWNER
 } from './actionTypes';
 import { LoginDialog, WaitForOwnerDialog } from './components';
-
-const logger = require('jitsi-meet-logger').getLogger(__filename);
+import logger from './logger';
 
 /**
  * Initiates authenticating and upgrading the role of the local participant to
@@ -33,7 +34,7 @@ export function authenticateAndUpgradeRole(
         id: string,
         password: string,
         conference: Object) {
-    return (dispatch: Dispatch, getState: Function) => {
+    return (dispatch: Dispatch<any>, getState: Function) => {
         const { password: roomPassword }
             = getState()['features/base/conference'];
         const process
@@ -73,7 +74,7 @@ export function authenticateAndUpgradeRole(
  * }}
  */
 export function cancelLogin() {
-    return (dispatch: Dispatch<*>, getState: Function) => {
+    return (dispatch: Dispatch<any>, getState: Function) => {
         dispatch({ type: CANCEL_LOGIN });
 
         // XXX The error associated with CONNECTION_FAILED was marked as
@@ -100,7 +101,7 @@ export function cancelLogin() {
  * @returns {Function}
  */
 export function cancelWaitForOwner() {
-    return (dispatch: Dispatch<*>, getState: Function) => {
+    return (dispatch: Dispatch<any>, getState: Function) => {
         dispatch(stopWaitForOwner());
 
         // XXX The error associated with CONFERENCE_FAILED was marked as
@@ -228,7 +229,7 @@ function _upgradeRoleStarted(thenableWithCancel) {
  * @returns {Function}
  */
 export function waitForOwner() {
-    return (dispatch: Dispatch) =>
+    return (dispatch: Dispatch<any>) =>
         dispatch({
             type: WAIT_FOR_OWNER,
             handler: () => dispatch(checkIfCanJoin()),

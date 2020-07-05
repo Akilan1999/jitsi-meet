@@ -1,9 +1,10 @@
 // @flow
 
-import { loadGoogleAPI } from '../google-api';
+import { generateRoomWithoutSeparator } from 'js-utils/random';
+import type { Dispatch } from 'redux';
 
-import { refreshCalendar, setCalendarEvents } from './actions';
 import { createCalendarConnectedEvent, sendAnalytics } from '../analytics';
+import { loadGoogleAPI } from '../google-api';
 
 import {
     CLEAR_CALENDAR_INTEGRATION,
@@ -13,12 +14,11 @@ import {
     SET_CALENDAR_PROFILE_EMAIL,
     SET_LOADING_CALENDAR_EVENTS
 } from './actionTypes';
+import { refreshCalendar, setCalendarEvents } from './actions';
 import { _getCalendarIntegration, isCalendarEnabled } from './functions';
-import { generateRoomWithoutSeparator } from '../welcome';
+import logger from './logger';
 
 export * from './actions.any';
-
-const logger = require('jitsi-meet-logger').getLogger(__filename);
 
 /**
  * Sets the initial state of calendar integration by loading third party APIs
@@ -28,23 +28,24 @@ const logger = require('jitsi-meet-logger').getLogger(__filename);
  */
 export function bootstrapCalendarIntegration(): Function {
     return (dispatch, getState) => {
+        const state = getState();
+
+        if (!isCalendarEnabled(state)) {
+            return Promise.reject();
+        }
+
         const {
             googleApiApplicationClientID
-        } = getState()['features/base/config'];
+        } = state['features/base/config'];
         const {
             integrationReady,
             integrationType
-        } = getState()['features/calendar-sync'];
-
-        if (!isCalendarEnabled()) {
-            return Promise.reject();
-        }
+        } = state['features/calendar-sync'];
 
         return Promise.resolve()
             .then(() => {
                 if (googleApiApplicationClientID) {
-                    return dispatch(
-                        loadGoogleAPI(googleApiApplicationClientID));
+                    return dispatch(loadGoogleAPI());
                 }
             })
             .then(() => {
@@ -196,7 +197,7 @@ export function setIntegrationReady(integrationType: string) {
  * @returns {Function}
  */
 export function signIn(calendarType: string): Function {
-    return (dispatch: Dispatch<*>) => {
+    return (dispatch: Dispatch<any>) => {
         const integration = _getCalendarIntegration(calendarType);
 
         if (!integration) {
@@ -228,7 +229,7 @@ export function signIn(calendarType: string): Function {
  * @returns {Function}
  */
 export function updateCalendarEvent(id: string, calendarId: string): Function {
-    return (dispatch: Dispatch<*>, getState: Function) => {
+    return (dispatch: Dispatch<any>, getState: Function) => {
 
         const { integrationType } = getState()['features/calendar-sync'];
         const integration = _getCalendarIntegration(integrationType);
@@ -275,7 +276,7 @@ export function updateCalendarEvent(id: string, calendarId: string): Function {
  * @returns {Function}
  */
 export function updateProfile(calendarType: string): Function {
-    return (dispatch: Dispatch<*>) => {
+    return (dispatch: Dispatch<any>) => {
         const integration = _getCalendarIntegration(calendarType);
 
         if (!integration) {

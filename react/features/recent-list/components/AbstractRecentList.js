@@ -1,12 +1,14 @@
 // @flow
+
 import React from 'react';
+import type { Dispatch } from 'redux';
 
 import {
     createRecentClickedEvent,
     createRecentSelectedEvent,
     sendAnalytics
 } from '../../analytics';
-import { appNavigate } from '../../app';
+import { appNavigate } from '../../app/actions';
 import {
     AbstractPage,
     Container,
@@ -23,7 +25,7 @@ type Props = {
     /**
      * The redux store's {@code dispatch} function.
      */
-    dispatch: Dispatch<*>,
+    dispatch: Dispatch<any>,
 
     /**
      * The translate function.
@@ -83,7 +85,7 @@ export default class AbstractRecentList<P: Props> extends AbstractPage<P> {
         );
     }
 
-    _onPress: string => {};
+    _onPress: string => void;
 
     /**
      * Handles the list's navigate action.

@@ -5,7 +5,6 @@ import React, { Fragment } from 'react';
 import { BaseApp } from '../../base/app';
 import { toURLString } from '../../base/util';
 import { OverlayContainer } from '../../overlay';
-
 import { appNavigate } from '../actions';
 import { getDefaultURL } from '../functions';
 
@@ -13,12 +12,6 @@ import { getDefaultURL } from '../functions';
  * The type of React {@code Component} props of {@link AbstractApp}.
  */
 export type Props = {
-
-    /**
-     * The default URL {@code AbstractApp} is to open when not in any
-     * conference/room.
-     */
-    defaultURL: string,
 
     /**
      * XXX Refer to the implementation of loadURLObject: in
@@ -77,22 +70,6 @@ export class AbstractApp extends BaseApp<Props, *> {
                 this._openURL(currentUrl || this._getDefaultURL());
             }
         });
-    }
-
-    /**
-     * Gets a {@code Location} object from the window with information about the
-     * current location of the document. Explicitly defined to allow extenders
-     * to override because React Native does not usually have a location
-     * property on its window unless debugging remotely in which case the
-     * browser that is the remote debugger will provide a location property on
-     * the window.
-     *
-     * @public
-     * @returns {Location} A {@code Location} object with information about the
-     * current location of the document.
-     */
-    getWindowLocation() {
-        return undefined;
     }
 
     /**

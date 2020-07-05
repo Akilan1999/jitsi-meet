@@ -1,6 +1,7 @@
 // @flow
 
-import { connect } from 'react-redux';
+import { connect } from '../../../redux';
+import { _abstractMapStateToProps } from '../../functions';
 
 import BaseDialog, { type Props } from './BaseDialog';
 
@@ -19,4 +20,4 @@ class CustomDialog extends BaseDialog<Props, *> {
     }
 }
 
-export default connect()(CustomDialog);
+export default connect(_abstractMapStateToProps)(CustomDialog);

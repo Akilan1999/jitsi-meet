@@ -9,13 +9,6 @@
 
 # Add any project specific keep options here:
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
 # React Native
 
 # Keep our interfaces so they can be used by other ProGuard rules.
@@ -60,18 +53,18 @@
 -keep class sun.misc.Unsafe { *; }
 -dontwarn java.nio.file.*
 -dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
+-keep class okio.** { *; }
 -dontwarn okio.**
 
-# FastImage + Glide
+# WebRTC
 
--keep public class com.dylanvann.fastimage.* {*;}
--keep public class com.dylanvann.fastimage.** {*;}
--keep public class * implements com.bumptech.glide.module.GlideModule
--keep public class * extends com.bumptech.glide.module.AppGlideModule
--keep public enum com.bumptech.glide.load.ImageHeaderParser$** {
-  **[] $VALUES;
-  public *;
-}
+-keep class org.webrtc.** { *; }
+-dontwarn org.chromium.build.BuildHooksAndroid
+
+# Jisti Meet SDK
+
+-keep class org.jitsi.meet.** { *; }
+-keep class org.jitsi.meet.sdk.** { *; }
 
 # We added the following when we switched minifyEnabled on. Probably because we
 # ran the app and hit problems...
@@ -83,7 +76,6 @@
 -keep class com.facebook.react.bridge.ReadableType { *; }
 -keep class com.facebook.react.bridge.queue.NativeRunnable { *; }
 -keep class com.facebook.react.devsupport.** { *; }
--keep class org.webrtc.** { *; }
 
 -dontwarn com.facebook.react.devsupport.**
 -dontwarn com.google.appengine.**
@@ -91,3 +83,10 @@
 -dontwarn javax.servlet.**
 
 # ^^^ We added the above when we switched minifyEnabled on.
+
+# Rule to avoid build errors related to SVGs.
+-keep public class com.horcrux.svg.** {*;}
+
+# Hermes
+-keep class com.facebook.hermes.unicode.** { *; }
+

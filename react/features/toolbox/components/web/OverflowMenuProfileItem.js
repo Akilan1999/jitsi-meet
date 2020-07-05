@@ -1,13 +1,11 @@
-/* @flow */
+// @flow
 
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
 
-import {
-    Avatar,
-    getAvatarURL,
-    getLocalParticipant
-} from '../../../base/participants';
+import { Avatar } from '../../../base/avatar';
+import { translate } from '../../../base/i18n';
+import { getLocalParticipant } from '../../../base/participants';
+import { connect } from '../../../base/redux';
 
 declare var interfaceConfig: Object;
 
@@ -31,7 +29,12 @@ type Props = {
      * The callback to invoke when {@code OverflowMenuProfileItem} is
      * clicked.
      */
-    onClick: Function
+    onClick: Function,
+
+    /**
+     * Invoked to obtain translated strings.
+     */
+    t: Function
 };
 
 /**
@@ -61,10 +64,9 @@ class OverflowMenuProfileItem extends Component<Props> {
      * @returns {ReactElement}
      */
     render() {
-        const { _localParticipant, _unclickable } = this.props;
+        const { _localParticipant, _unclickable, t } = this.props;
         const classNames = `overflow-menu-item ${
             _unclickable ? 'unclickable' : ''}`;
-        const avatarURL = getAvatarURL(_localParticipant);
         let displayName;
 
         if (_localParticipant && _localParticipant.name) {
@@ -75,11 +77,13 @@ class OverflowMenuProfileItem extends Component<Props> {
 
         return (
             <li
-                aria-label = 'Edit your profile'
+                aria-label = { t('toolbar.accessibilityLabel.profile') }
                 className = { classNames }
                 onClick = { this._onClick }>
                 <span className = 'overflow-menu-item-icon'>
-                    <Avatar uri = { avatarURL } />
+                    <Avatar
+                        participantId = { _localParticipant.id }
+                        size = { 24 } />
                 </span>
                 <span className = 'profile-text'>
                     { displayName }
@@ -121,4 +125,4 @@ function _mapStateToProps(state) {
     };
 }
 
-export default connect(_mapStateToProps)(OverflowMenuProfileItem);
+export default translate(connect(_mapStateToProps)(OverflowMenuProfileItem));

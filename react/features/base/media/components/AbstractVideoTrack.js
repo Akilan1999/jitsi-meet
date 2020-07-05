@@ -1,10 +1,11 @@
 /* @flow */
 
 import React, { Component } from 'react';
+import type { Dispatch } from 'redux';
 
 import { trackVideoStarted } from '../../tracks';
-
 import { shouldRenderVideoTrack } from '../functions';
+
 import { Video } from './_';
 
 /**
@@ -15,7 +16,7 @@ export type Props = {
     /**
      * The Redux dispatch function.
      */
-    dispatch: Dispatch<*>,
+    dispatch: Dispatch<any>,
 
     /**
      * Callback to invoke when the {@link Video} of {@code AbstractVideoTrack}

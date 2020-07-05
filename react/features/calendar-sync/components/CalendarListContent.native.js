@@ -1,19 +1,17 @@
 // @flow
 
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
 
-import { appNavigate } from '../../app';
 import {
     createCalendarClickedEvent,
     createCalendarSelectedEvent,
     sendAnalytics
 } from '../../analytics';
+import { appNavigate } from '../../app/actions';
 import { getLocalizedDateFormatter, translate } from '../../base/i18n';
 import { NavigateSectionList } from '../../base/react';
-
+import { connect } from '../../base/redux';
 import { refreshCalendar, openUpdateCalendarEventDialog } from '../actions';
-import { isCalendarEnabled } from '../functions';
 
 
 /**
@@ -108,7 +106,7 @@ class CalendarListContent extends Component<Props> {
         );
     }
 
-    _onPress: (string, string) => Function;
+    _onPress: (string, ?string) => Function;
 
     /**
      * Handles the list's navigate action.
@@ -271,6 +269,4 @@ function _mapStateToProps(state: Object) {
     };
 }
 
-export default isCalendarEnabled()
-    ? translate(connect(_mapStateToProps)(CalendarListContent))
-    : undefined;
+export default translate(connect(_mapStateToProps)(CalendarListContent));

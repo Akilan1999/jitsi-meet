@@ -2,19 +2,17 @@
 
 import Spinner from '@atlaskit/spinner';
 import React from 'react';
-import { connect } from 'react-redux';
 
-import { translate } from '../../base/i18n';
-import { AbstractPage } from '../../base/react';
-import { openSettingsDialog, SETTINGS_TABS } from '../../settings';
 import {
     createCalendarClickedEvent,
     sendAnalytics
 } from '../../analytics';
-
+import { translate } from '../../base/i18n';
+import { AbstractPage } from '../../base/react';
+import { connect } from '../../base/redux';
+import { openSettingsDialog, SETTINGS_TABS } from '../../settings';
 import { refreshCalendar } from '../actions';
 import { ERRORS } from '../constants';
-import { isCalendarEnabled } from '../functions';
 
 import CalendarListContent from './CalendarListContent';
 
@@ -189,7 +187,8 @@ class CalendarList extends AbstractPage<Props> {
             <div className = 'meetings-list-empty'>
                 <p className = 'description'>
                     { t('welcomepage.connectCalendarText', {
-                        app: interfaceConfig.APP_NAME
+                        app: interfaceConfig.APP_NAME,
+                        provider: interfaceConfig.PROVIDER_NAME
                     }) }
                 </p>
                 <div
@@ -256,6 +255,4 @@ function _mapStateToProps(state) {
     };
 }
 
-export default isCalendarEnabled()
-    ? translate(connect(_mapStateToProps)(CalendarList))
-    : undefined;
+export default translate(connect(_mapStateToProps)(CalendarList));

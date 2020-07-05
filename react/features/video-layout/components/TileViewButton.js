@@ -1,18 +1,21 @@
 // @flow
 
-import { connect } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import {
     createToolbarEvent,
     sendAnalytics
 } from '../../analytics';
+import { TILE_VIEW_ENABLED, getFeatureFlag } from '../../base/flags';
 import { translate } from '../../base/i18n';
+import { IconTileView } from '../../base/icons';
+import { connect } from '../../base/redux';
 import {
     AbstractButton,
     type AbstractButtonProps
 } from '../../base/toolbox';
-
 import { setTileView } from '../actions';
+import logger from '../logger';
 
 /**
  * The type of the React {@code Component} props of {@link TileViewButton}.
@@ -27,7 +30,7 @@ type Props = AbstractButtonProps & {
     /**
      * Used to dispatch actions from the buttons.
      */
-    dispatch: Dispatch<*>
+    dispatch: Dispatch<any>
 };
 
 /**
@@ -37,9 +40,9 @@ type Props = AbstractButtonProps & {
  */
 class TileViewButton<P: Props> extends AbstractButton<P, *> {
     accessibilityLabel = 'toolbar.accessibilityLabel.tileView';
-    iconName = 'icon-tiles-many';
-    label = 'toolbar.tileViewToggle';
-    toggledIconName = 'icon-tiles-many toggled';
+    icon = IconTileView;
+    label = 'toolbar.enterTileView';
+    toggledLabel = 'toolbar.exitTileView';
     tooltip = 'toolbar.tileViewToggle';
 
     /**
@@ -57,8 +60,10 @@ class TileViewButton<P: Props> extends AbstractButton<P, *> {
             {
                 'is_enabled': _tileViewEnabled
             }));
+        const value = !_tileViewEnabled;
 
-        dispatch(setTileView(!_tileViewEnabled));
+        logger.debug(`Tile view ${value ? 'enable' : 'disable'}`);
+        dispatch(setTileView(value));
     }
 
     /**
@@ -78,13 +83,16 @@ class TileViewButton<P: Props> extends AbstractButton<P, *> {
  * {@code TileViewButton} component.
  *
  * @param {Object} state - The Redux state.
- * @returns {{
- *     _tileViewEnabled: boolean
- * }}
+ * @param {Object} ownProps - The properties explicitly passed to the component instance.
+ * @returns {Props}
  */
-function _mapStateToProps(state) {
+function _mapStateToProps(state, ownProps) {
+    const enabled = getFeatureFlag(state, TILE_VIEW_ENABLED, true);
+    const { visible = enabled } = ownProps;
+
     return {
-        _tileViewEnabled: state['features/video-layout'].tileViewEnabled
+        _tileViewEnabled: state['features/video-layout'].tileViewEnabled,
+        visible
     };
 }
 

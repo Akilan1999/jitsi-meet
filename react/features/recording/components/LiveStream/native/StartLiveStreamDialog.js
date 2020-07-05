@@ -2,15 +2,12 @@
 
 import React from 'react';
 import { View } from 'react-native';
-import { connect } from 'react-redux';
 
 import { CustomSubmitDialog } from '../../../../base/dialog';
 import { translate } from '../../../../base/i18n';
+import { connect } from '../../../../base/redux';
 import { googleApi } from '../../../../google-api';
-
-
 import { setLiveStreamKey } from '../../../actions';
-
 import AbstractStartLiveStreamDialog,
 { _mapStateToProps, type Props } from '../AbstractStartLiveStreamDialog';
 
@@ -47,7 +44,7 @@ class StartLiveStreamDialog extends AbstractStartLiveStreamDialog<Props> {
     render() {
         return (
             <CustomSubmitDialog
-                okTitleKey = 'dialog.startLiveStreaming'
+                okKey = 'dialog.startLiveStreaming'
                 onCancel = { this._onCancel }
                 onSubmit = { this._onSubmit } >
                 <View style = { styles.startDialogWrapper }>
@@ -119,13 +116,22 @@ class StartLiveStreamDialog extends AbstractStartLiveStreamDialog<Props> {
      * @returns {void}
      */
     _onUserChanged(response) {
-        if (response && response.accessToken) {
-            googleApi.getYouTubeLiveStreams(response.accessToken)
-            .then(broadcasts => {
-                this.setState({
-                    broadcasts
+        if (response) {
+            googleApi.getTokens()
+                .then(tokens => {
+                    googleApi.getYouTubeLiveStreams(tokens.accessToken)
+                        .then(broadcasts => {
+                            this.setState({
+                                broadcasts
+                            });
+                        });
+                })
+                .catch(() => {
+                    this.setState({
+                        broadcasts: undefined,
+                        streamKey: undefined
+                    });
                 });
-            });
         } else {
             this.setState({
                 broadcasts: undefined,

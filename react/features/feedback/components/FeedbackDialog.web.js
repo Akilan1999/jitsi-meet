@@ -1,10 +1,10 @@
-/* @flow */
+// @flow
 
 import { FieldTextAreaStateless } from '@atlaskit/field-text-area';
 import StarIcon from '@atlaskit/icon/glyph/star';
 import StarFilledIcon from '@atlaskit/icon/glyph/star-filled';
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import type { Dispatch } from 'redux';
 
 import {
     createFeedbackOpenEvent,
@@ -12,9 +12,10 @@ import {
 } from '../../analytics';
 import { Dialog } from '../../base/dialog';
 import { translate } from '../../base/i18n';
-
+import { connect } from '../../base/redux';
 import { cancelFeedback, submitFeedback } from '../actions';
 
+declare var APP: Object;
 declare var interfaceConfig: Object;
 
 const scoreAnimationClass
@@ -61,7 +62,7 @@ type Props = {
     /**
      * Invoked to signal feedback submission or canceling.
      */
-    dispatch: Dispatch<*>,
+    dispatch: Dispatch<any>,
 
     /**
      * Callback invoked when {@code FeedbackDialog} is unmounted.
@@ -172,6 +173,9 @@ class FeedbackDialog extends Component<Props, State> {
      */
     componentDidMount() {
         sendAnalytics(createFeedbackOpenEvent());
+        if (typeof APP !== 'undefined') {
+            APP.API.notifyFeedbackPromptDisplayed();
+        }
     }
 
     /**
@@ -224,7 +228,7 @@ class FeedbackDialog extends Component<Props, State> {
 
         return (
             <Dialog
-                okTitleKey = 'dialog.Submit'
+                okKey = 'dialog.Submit'
                 onCancel = { this._onCancel }
                 onSubmit = { this._onSubmit }
                 titleKey = 'feedback.rateExperience'>

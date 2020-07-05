@@ -2,10 +2,11 @@
 
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { connect } from 'react-redux';
 
 import { translate } from '../../../i18n';
-
+import { connect } from '../../../redux';
+import { StyleType } from '../../../styles';
+import { _abstractMapStateToProps } from '../../functions';
 import { type State as AbstractState } from '../AbstractDialog';
 
 import BaseDialog, { type Props as BaseProps } from './BaseDialog';
@@ -15,17 +16,36 @@ import {
     inputDialog as styles
 } from './styles';
 
-type Props = {
-    ...BaseProps,
+type Props = BaseProps & {
+
+    /**
+     * The color-schemed stylesheet of the feature.
+     */
+    _dialogStyles: StyleType,
 
     /**
      * The untranslated i18n key for the field label on the dialog.
      */
     contentKey: string,
 
+    /**
+     * An optional initial value to initiate the field with.
+     */
+    initialValue?: ?string,
+
+    /**
+     * A message key to be shown for the user (e.g. an error that is defined after submitting the form).
+     */
+    messageKey?: string,
+
     t: Function,
 
-    textInputProps: ?Object
+    textInputProps: ?Object,
+
+    /**
+     * Validating of the input.
+     */
+    validateInput: ?Function
 }
 
 type State = {
@@ -50,7 +70,7 @@ class InputDialog extends BaseDialog<Props, State> {
         super(props);
 
         this.state = {
-            fieldValue: undefined
+            fieldValue: props.initialValue
         };
 
         this._onChangeText = this._onChangeText.bind(this);
@@ -63,7 +83,7 @@ class InputDialog extends BaseDialog<Props, State> {
      * @inheritdoc
      */
     _renderContent() {
-        const { okDisabled, t } = this.props;
+        const { _dialogStyles, messageKey, okDisabled, t } = this.props;
 
         return (
             <View>
@@ -72,26 +92,33 @@ class InputDialog extends BaseDialog<Props, State> {
                         brandedDialog.mainWrapper,
                         styles.fieldWrapper
                     ] }>
-                    <Text style = { styles.fieldLabel }>
+                    <Text style = { _dialogStyles.fieldLabel }>
                         { t(this.props.contentKey) }
                     </Text>
                     <TextInput
                         onChangeText = { this._onChangeText }
-                        style = { styles.field }
+                        style = { _dialogStyles.field }
                         underlineColorAndroid = { FIELD_UNDERLINE }
                         value = { this.state.fieldValue }
                         { ...this.props.textInputProps } />
+                    { messageKey && (<Text
+                        style = { [
+                            styles.formMessage,
+                            _dialogStyles.text
+                        ] }>
+                        { t(messageKey) }
+                    </Text>) }
                 </View>
                 <View style = { brandedDialog.buttonWrapper }>
                     <TouchableOpacity
                         disabled = { okDisabled }
                         onPress = { this._onSubmitValue }
                         style = { [
-                            brandedDialog.button,
+                            _dialogStyles.button,
                             brandedDialog.buttonFarLeft,
                             brandedDialog.buttonFarRight
                         ] }>
-                        <Text style = { brandedDialog.text }>
+                        <Text style = { _dialogStyles.buttonLabel }>
                             { t('dialog.Ok') }
                         </Text>
                     </TouchableOpacity>
@@ -111,6 +138,12 @@ class InputDialog extends BaseDialog<Props, State> {
      * @returns {void}
      */
     _onChangeText(fieldValue) {
+
+        if (this.props.validateInput
+                && !this.props.validateInput(fieldValue)) {
+            return;
+        }
+
         this.setState({
             fieldValue
         });
@@ -130,4 +163,4 @@ class InputDialog extends BaseDialog<Props, State> {
     }
 }
 
-export default translate(connect()(InputDialog));
+export default translate(connect(_abstractMapStateToProps)(InputDialog));

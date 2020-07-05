@@ -1,14 +1,7 @@
 /* global $, APP, YT, interfaceConfig, onPlayerReady, onPlayerStateChange,
 onPlayerError */
 
-const logger = require('jitsi-meet-logger').getLogger(__filename);
-
-import UIUtil from '../util/UIUtil';
-import UIEvents from '../../../service/UI/UIEvents';
-
-import VideoLayout from '../videolayout/VideoLayout';
-import LargeContainer from '../videolayout/LargeContainer';
-import Filmstrip from '../videolayout/Filmstrip';
+import Logger from 'jitsi-meet-logger';
 
 import {
     createSharedVideoEvent as createEvent,
@@ -24,6 +17,13 @@ import {
     getToolboxHeight,
     showToolbox
 } from '../../../react/features/toolbox';
+import UIEvents from '../../../service/UI/UIEvents';
+import UIUtil from '../util/UIUtil';
+import Filmstrip from '../videolayout/Filmstrip';
+import LargeContainer from '../videolayout/LargeContainer';
+import VideoLayout from '../videolayout/VideoLayout';
+
+const logger = Logger.getLogger(__filename);
 
 export const SHARED_VIDEO_CONTAINER_TYPE = 'sharedvideo';
 
@@ -31,7 +31,7 @@ export const SHARED_VIDEO_CONTAINER_TYPE = 'sharedvideo';
  * Example shared video link.
  * @type {string}
  */
-const defaultSharedVideoLink = 'https://www.youtube.com/watch?v=xNXN7CZk8X0';
+const defaultSharedVideoLink = 'https://youtu.be/TB7LlM4erx8';
 const updateInterval = 5000; // milliseconds
 
 /**
@@ -301,8 +301,7 @@ export default class SharedVideoManager {
 
                 // FIXME The cat is out of the bag already or rather _room is
                 // not private because it is used in multiple other places
-                // already such as AbstractPageReloadOverlay and
-                // JitsiMeetLogStorage.
+                // already such as AbstractPageReloadOverlay.
                 conference: APP.conference._room,
                 id: self.url,
                 isFakeParticipant: true,
@@ -662,7 +661,7 @@ class SharedVideoContainer extends LargeContainer {
 
         if (interfaceConfig.VERTICAL_FILMSTRIP) {
             height = containerHeight - getToolboxHeight();
-            width = containerWidth - Filmstrip.getFilmstripWidth();
+            width = containerWidth - Filmstrip.getVerticalFilmstripWidth();
         } else {
             height = containerHeight - Filmstrip.getFilmstripHeight();
             width = containerWidth;

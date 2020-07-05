@@ -1,7 +1,9 @@
 // @flow
-import { BoxModel, ColorPalette, createStyleSheet } from '../../../base/styles';
 
-import { HANGUP_BUTTON_SIZE } from '../../constants';
+import { ColorSchemeRegistry, schemeColor } from '../../../base/color-scheme';
+import { BoxModel, ColorPalette } from '../../../base/styles';
+
+const BUTTON_SIZE = 50;
 
 // Toolbox, toolbar:
 
@@ -9,19 +11,18 @@ import { HANGUP_BUTTON_SIZE } from '../../constants';
  * The style of toolbar buttons.
  */
 const toolbarButton = {
-    backgroundColor: ColorPalette.white,
-    borderRadius: 20,
+    backgroundColor: schemeColor('button'),
+    borderRadius: BUTTON_SIZE / 2,
     borderWidth: 0,
     flex: 0,
     flexDirection: 'row',
-    height: 40,
+    height: BUTTON_SIZE,
     justifyContent: 'center',
 
     // XXX We probably tested BoxModel.margin and discovered it to be too small
     // for our taste.
     marginHorizontal: 7,
-    opacity: 0.7,
-    width: 40
+    width: BUTTON_SIZE
 };
 
 /**
@@ -34,27 +35,36 @@ const toolbarButtonIcon = {
 };
 
 /**
+ * The style of toolbar buttons which display white icons.
+ */
+const whiteToolbarButton = {
+    ...toolbarButton,
+    backgroundColor: schemeColor('buttonToggled')
+};
+
+/**
+ * The icon style of toolbar buttons which display white icons.
+ */
+const whiteToolbarButtonIcon = {
+    ...toolbarButtonIcon,
+    color: ColorPalette.white
+};
+
+/**
  * The Toolbox and toolbar related styles.
  */
-const styles = createStyleSheet({
-    /**
-     * The style of the toolbar button which hangs the current conference up.
-     */
-    hangupButton: {
-        ...toolbarButton,
-        backgroundColor: ColorPalette.red,
-        borderRadius: 30,
-        height: HANGUP_BUTTON_SIZE,
-        width: HANGUP_BUTTON_SIZE
+const styles = {
+
+    expandMenuContainer: {
+        alignItems: 'center',
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        flexDirection: 'column'
     },
 
-    /**
-     * The icon style of toolbar buttons which hangs the current conference up.
-     */
-    hangupButtonIcon: {
-        ...toolbarButtonIcon,
-        color: ColorPalette.white,
-        fontSize: 24
+    sheetGestureRecognizer: {
+        alignItems: 'stretch',
+        flexDirection: 'column'
     },
 
     /**
@@ -70,63 +80,64 @@ const styles = createStyleSheet({
     },
 
     /**
-     * The style of toolbar buttons.
-     */
-    toolbarButton,
-
-    /**
-     * The icon style of the toolbar buttons.
-     */
-    toolbarButtonIcon,
-
-    /**
      * The style of the root/top-level {@link Container} of {@link Toolbox}.
      */
     toolbox: {
         flexDirection: 'column',
         flexGrow: 0
-    },
-
-    /**
-     * The style of toolbar buttons which display white icons.
-     */
-    whiteToolbarButton: {
-        ...toolbarButton,
-        backgroundColor: ColorPalette.buttonUnderlay
-    },
-
-    /**
-     * The icon style of toolbar buttons which display white icons.
-     */
-    whiteToolbarButtonIcon: {
-        ...toolbarButtonIcon,
-        color: ColorPalette.white
     }
-});
+};
 
 export default styles;
 
 /**
- * Styles for the hangup button.
+ * Color schemed styles for the @{Toolbox} component.
  */
-export const hangupButtonStyles = {
-    iconStyle: styles.whiteToolbarButtonIcon,
-    style: styles.hangupButton,
-    underlayColor: ColorPalette.buttonUnderlay
-};
+ColorSchemeRegistry.register('Toolbox', {
+    /**
+     * Styles for buttons in the toolbar.
+     */
+    buttonStyles: {
+        iconStyle: toolbarButtonIcon,
+        style: toolbarButton
+    },
 
-/**
- * Styles for buttons in the toolbar.
- */
-export const toolbarButtonStyles = {
-    iconStyle: styles.toolbarButtonIcon,
-    style: styles.toolbarButton
-};
+    buttonStylesBorderless: {
+        iconStyle: whiteToolbarButtonIcon,
+        style: {
+            ...toolbarButton,
+            backgroundColor: 'transparent'
+        }
+    },
 
-/**
- * Styles for toggled buttons in the toolbar.
- */
-export const toolbarToggledButtonStyles = {
-    iconStyle: styles.whiteToolbarButtonIcon,
-    style: styles.whiteToolbarButton
-};
+    /**
+     * Overrides to the standard styles that we apply to the chat button, as
+     * that behaves slightly differently to other buttons.
+     */
+    chatButtonOverride: {
+        toggled: {
+            backgroundColor: ColorPalette.blue
+        }
+    },
+
+    hangupButtonStyles: {
+        iconStyle: whiteToolbarButtonIcon,
+        style: {
+            ...toolbarButton,
+            backgroundColor: schemeColor('hangup')
+        },
+        underlayColor: ColorPalette.buttonUnderlay
+    },
+
+    /**
+     * Styles for toggled buttons in the toolbar.
+     */
+    toggledButtonStyles: {
+        iconStyle: whiteToolbarButtonIcon,
+        style: {
+            ...whiteToolbarButton,
+            borderColor: schemeColor('buttonToggledBorder'),
+            borderWidth: 1
+        }
+    }
+});

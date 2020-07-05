@@ -1,29 +1,29 @@
 // @flow
 
+import { randomInt } from 'js-utils/random';
 import React, { Component } from 'react';
+import type { Dispatch } from 'redux';
 
 import {
     createPageReloadScheduledEvent,
     sendAnalytics
 } from '../../analytics';
-import { reloadNow } from '../../app';
+import { reloadNow } from '../../app/actions';
 import {
     isFatalJitsiConferenceError,
     isFatalJitsiConnectionError
 } from '../../base/lib-jitsi-meet';
-import { randomInt } from '../../base/util';
+import logger from '../logger';
 
-import ReloadButton from './ReloadButton';
+import ReloadButton from './web/ReloadButton';
 
 declare var APP: Object;
-
-const logger = require('jitsi-meet-logger').getLogger(__filename);
 
 /**
  * The type of the React {@code Component} props of
  * {@link AbstractPageReloadOverlay}.
  */
-type Props = {
+export type Props = {
 
     /**
      * The details is an object containing more information about the connection
@@ -31,7 +31,7 @@ type Props = {
      */
     details: Object,
 
-    dispatch: Dispatch<*>,
+    dispatch: Dispatch<any>,
 
     /**
      * The indicator which determines whether the reload was caused by network
@@ -81,9 +81,11 @@ type State = {
 
 /**
  * Implements an abstract React {@link Component} for the page reload overlays.
+ *
+ * FIXME: This is not really an abstract class as some components and functions are very web specific.
  */
-export default class AbstractPageReloadOverlay
-    extends Component<Props, State> {
+export default class AbstractPageReloadOverlay<P: Props>
+    extends Component<P, State> {
     /**
      * Determines whether this overlay needs to be rendered (according to a
      * specific redux state). Called by {@link OverlayContainer}.
@@ -132,7 +134,7 @@ export default class AbstractPageReloadOverlay
      * instance is to be initialized.
      * @public
      */
-    constructor(props: Object) {
+    constructor(props: P) {
         super(props);
 
         /**
@@ -284,6 +286,6 @@ export function abstractMapStateToProps(state: Object) {
         details: fatalError && fatalError.details,
         isNetworkFailure:
             fatalError === configError || fatalError === connectionError,
-        reason: fatalError && fatalError.message
+        reason: fatalError && (fatalError.message || fatalError.name)
     };
 }

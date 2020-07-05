@@ -7,7 +7,7 @@ local hex = require "util.hex";
 local jwt = require "luajwtjitsi";
 local http = require "net.http";
 local jid = require "util.jid";
-local json = require "cjson";
+local json_safe = require "cjson.safe";
 local path = require "util.paths";
 local sha256 = require "util.hashes".sha256;
 local timer = require "util.timer";
@@ -100,6 +100,10 @@ function Util.new(module)
     return self
 end
 
+function Util:set_asap_key_server(asapKeyServer)
+    self.asapKeyServer = asapKeyServer
+end
+
 --- Returns the public key by keyID
 -- @param keyId the key ID to request
 -- @return the public key (the content of requested resource) or nil
@@ -155,9 +159,10 @@ end
 
 --- Verifies issuer part of token
 -- @param 'iss' claim from the token to verify
+-- @param 'acceptedIssuers' list of issuers to check
 -- @return nil and error string or true for accepted claim
-function Util:verify_issuer(issClaim)
-    for i, iss in ipairs(self.acceptedIssuers) do
+function Util:verify_issuer(issClaim, acceptedIssuers)
+    for i, iss in ipairs(acceptedIssuers) do
         if issClaim == iss then
             --claim matches an accepted issuer so return success
             return true;
@@ -188,8 +193,9 @@ end
 --- Verifies token
 -- @param token the token to verify
 -- @param secret the secret to use to verify token
+-- @param acceptedIssuers the list of accepted issuers to check
 -- @return nil and error or the extracted claims from the token
-function Util:verify_token(token, secret)
+function Util:verify_token(token, secret, acceptedIssuers)
     local claims, err = jwt.decode(token, secret, true);
     if claims == nil then
         return nil, err;
@@ -205,7 +211,7 @@ function Util:verify_token(token, secret)
         return nil, "'iss' claim is missing";
     end
     --check the issuer against the accepted list
-    local issCheck, issCheckErr = self:verify_issuer(issClaim);
+    local issCheck, issCheckErr = self:verify_issuer(issClaim, acceptedIssuers);
     if issCheck == nil then
         return nil, issCheckErr;
     end
@@ -237,8 +243,12 @@ end
 -- session.jitsi_meet_context_group - the group value from the token
 -- session.jitsi_meet_context_features - the features value from the token
 -- @param session the current session
+-- @param acceptedIssuers optional list of accepted issuers to check
 -- @return false and error
-function Util:process_and_verify_token(session)
+function Util:process_and_verify_token(session, acceptedIssuers)
+    if not acceptedIssuers then
+        acceptedIssuers = self.acceptedIssuers;
+    end
 
     if session.auth_token == nil then
         if self.allowEmptyToken then
@@ -252,7 +262,10 @@ function Util:process_and_verify_token(session)
     if self.asapKeyServer and session.auth_token ~= nil then
         local dotFirst = session.auth_token:find("%.");
         if not dotFirst then return nil, "Invalid token" end
-        local header = json.decode(basexx.from_url64(session.auth_token:sub(1,dotFirst-1)));
+        local header, err = json_safe.decode(basexx.from_url64(session.auth_token:sub(1,dotFirst-1)));
+        if err then
+            return false, "not-allowed", "bad token format";
+        end
         local kid = header["kid"];
         if kid == nil then
             return false, "not-allowed", "'kid' claim is missing";
@@ -266,9 +279,9 @@ function Util:process_and_verify_token(session)
     -- now verify the whole token
     local claims, msg;
     if self.asapKeyServer then
-        claims, msg = self:verify_token(session.auth_token, pubKey);
+        claims, msg = self:verify_token(session.auth_token, pubKey, acceptedIssuers);
     else
-        claims, msg = self:verify_token(session.auth_token, self.appSecret);
+        claims, msg = self:verify_token(session.auth_token, self.appSecret, acceptedIssuers);
     end
     if claims ~= nil then
         -- Binds room name to the session which is later checked on MUC join
@@ -357,11 +370,20 @@ function Util:verify_room(session, room_address)
             room_to_check = room_node;
         end
     else
+        -- no wildcard, so check room against authorized room in token
         room_to_check = auth_room;
     end
 
     local auth_domain = session.jitsi_meet_domain;
+    local subdomain_to_check;
     if target_subdomain then
+        if auth_domain == '*' then
+            -- check for wildcard in JWT claim, allow access if found
+            subdomain_to_check = target_subdomain;
+        else
+            -- no wildcard in JWT claim, so check subdomain against sub in token
+            subdomain_to_check = auth_domain;
+        end
         -- from this point we depend on muc_domain_base,
         -- deny access if option is missing
         if not self.muc_domain_base then
@@ -370,12 +392,19 @@ function Util:verify_room(session, room_address)
         end
 
         return room_address_to_verify == jid.join(
-            "["..auth_domain.."]"..string.lower(room_to_check), self.muc_domain);
+            "["..string.lower(subdomain_to_check).."]"..string.lower(room_to_check), self.muc_domain);
     else
+        if auth_domain == '*' then
+            -- check for wildcard in JWT claim, allow access if found
+            subdomain_to_check = self.muc_domain;
+        else
+            -- no wildcard in JWT claim, so check subdomain against sub in token
+            subdomain_to_check = self.muc_domain_prefix.."."..auth_domain;
+        end
         -- we do not have a domain part (multidomain is not enabled)
         -- verify with info from the token
         return room_address_to_verify == jid.join(
-            string.lower(room_to_check), self.muc_domain_prefix.."."..auth_domain);
+            string.lower(room_to_check), string.lower(subdomain_to_check));
     end
 end
 
